@@ -22,6 +22,7 @@ import struct
 from twisted.internet import interfaces
 from twisted.python import log
 from twisted.web._newclient import makeStatefulDispatcher
+from twisted.protocols.policies import WrappingFactory, ProtocolWrapper
 from twisted.web.http import datetimeToString
 from twisted.web.http import _IdentityTransferDecoder
 from twisted.web.server import Request, Site, version, unquote
@@ -959,4 +960,41 @@ class WebSocketHybiFrameDecoder(WebSocketFrameDecoder):
         self.handler.transport.loseConnection()
 
 
-__all__ = ["WebSocketHandler", "WebSocketSite"]
+class WebSocketFactory(WrappingFactory):
+    """
+    Factory which wraps another factory to provide WebSockets transports for
+    all of its protocols.
+    """
+
+    protocol = ProtocolWrapper
+
+    def buildHandler(self, transport):
+        """"
+        Called in order to build C{WebSocketHandler} objects.
+    
+        @ivar transport: a C{WebSocketTransport} instance.
+        @type: L{WebSocketTransport}
+        """
+        
+        protocol = self.buildProtocol(transport.getHost())
+
+        handler = WebSocketHandler(transport)
+
+        def connectionMade():
+            protocol.makeConnection(transport)
+            
+        def frameReceived(frame):
+            protocol.dataReceived(frame)
+
+        def connectionLost(reason):
+            protocol.connectionLost(reason)
+        
+        handler.connectionMade = connectionMade
+        handler.frameReceived = frameReceived
+        handler.connectionLost = connectionLost
+        
+        return handler
+
+
+__all__ = ["WebSocketHandler", "WebSocketSite", "WebSocketFactory"]
+
