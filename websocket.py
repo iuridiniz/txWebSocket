@@ -15,7 +15,7 @@ current version of the specification.
 """
 
 from hashlib import md5
-from itertools import chain
+import itertools
 import re
 import struct
 
@@ -42,7 +42,7 @@ class WebSocketRequest(Request):
         connection_headers = self.requestHeaders.getRawHeaders("Connection") or []
         # get all connection_headers, split each at ',',
         # join into a single list and switch them to lower case
-        connection_headers = chain(*[re.split(r',\s*', h) for h in connection_headers])
+        connection_headers = itertools.chain(*[re.split(r',\s*', h) for h in connection_headers])
         connection_headers = [h.lower() for h in connection_headers]
 
         if ("websocket" in upgrade_headers and "upgrade" in connection_headers):
@@ -495,6 +495,8 @@ class WebSocketFrameDecoder(object):
                     self._data.append(data)
                 break
 
+__all__ = ["WebSocketHandler", "WebSocketSite", "WebSocketFactory"]
+
 class WebSocketFactory(WrappingFactory):
     """
     Factory which wraps another factory to provide WebSockets transports for
@@ -529,7 +531,3 @@ class WebSocketFactory(WrappingFactory):
         handler.connectionLost = connectionLost
         
         return handler
-
-
-__all__ = ["WebSocketHandler", "WebSocketSite", "WebSocketFactory"]
-
