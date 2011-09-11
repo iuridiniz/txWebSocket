@@ -49,19 +49,21 @@ class WebSocketRequest(Request):
     A general purpose L{Request} supporting connection upgrade for WebSocket.
     """
 
-    ACCEPT_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-
     def process(self):
-        connection = self.requestHeaders.getRawHeaders("Connection", [None])[0]
-        upgrade = self.requestHeaders.getRawHeaders("Upgrade", [None])[0]
+        # get upgrade headers and switch them to lower case
+        upgrade_headers = self.requestHeaders.getRawHeaders("Upgrade") or []
+        upgrade_headers = [h.lower() for h in upgrade_headers]
 
-        if not connection or "Upgrade" not in connection:
+        connection_headers = self.requestHeaders.getRawHeaders("Connection") or []
+        # get all connection_headers, split each at ',',
+        # join into a single list and switch them to lower case
+        connection_headers = itertools.chain(*[re.split(r',\s*', h) for h in connection_headers])
+        connection_headers = [h.lower() for h in connection_headers]
+
+        if ("websocket" in upgrade_headers and "upgrade" in connection_headers):
+            return self.processWebSocket()
+        else:
             return Request.process(self)
-
-        if upgrade not in ("WebSocket", "websocket"):
-            return Request.process(self)
-
-        return self.processWebSocket()
 
     def processWebSocket(self):
         """
