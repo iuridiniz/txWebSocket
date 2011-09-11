@@ -17,9 +17,11 @@ current version of the specification.
 import base64
 from hashlib import md5, sha1
 import itertools
+import re
 import struct
 
 from twisted.internet import interfaces
+from twisted.protocols.policies import WrappingFactory, ProtocolWrapper
 from twisted.python import log
 from twisted.web._newclient import makeStatefulDispatcher
 from twisted.protocols.policies import WrappingFactory, ProtocolWrapper
@@ -48,6 +50,8 @@ class WebSocketRequest(Request):
     """
     A general purpose L{Request} supporting connection upgrade for WebSocket.
     """
+
+    ACCEPT_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
     def process(self):
         # get upgrade headers and switch them to lower case
@@ -961,7 +965,6 @@ class WebSocketHybiFrameDecoder(WebSocketFrameDecoder):
         self._data[:] = []
         self.handler.transport.loseConnection()
 
-
 class WebSocketFactory(WrappingFactory):
     """
     Factory which wraps another factory to provide WebSockets transports for
@@ -997,6 +1000,4 @@ class WebSocketFactory(WrappingFactory):
         
         return handler
 
-
 __all__ = ["WebSocketHandler", "WebSocketSite", "WebSocketFactory"]
-
