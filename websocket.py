@@ -15,6 +15,8 @@ current version of the specification.
 """
 
 from hashlib import md5
+from itertools import chain
+import re
 import struct
 
 from twisted.internet import interfaces
@@ -33,8 +35,17 @@ class WebSocketRequest(Request):
     """
 
     def process(self):
-        if (self.requestHeaders.getRawHeaders("Upgrade") == ["WebSocket"] and
-            self.requestHeaders.getRawHeaders("Connection") == ["Upgrade"]):
+        # get upgrade headers and switch them to lower case
+        upgrade_headers = self.requestHeaders.getRawHeaders("Upgrade") or []
+        upgrade_headers = [h.lower() for h in upgrade_headers]
+
+        connection_headers = self.requestHeaders.getRawHeaders("Connection") or []
+        # get all connection_headers, split each at ',',
+        # join into a single list and switch them to lower case
+        connection_headers = chain(*[re.split(r',\s*', h) for h in connection_headers])
+        connection_headers = [h.lower() for h in connection_headers]
+
+        if ("websocket" in upgrade_headers and "upgrade" in connection_headers):
             return self.processWebSocket()
         else:
             return Request.process(self)
