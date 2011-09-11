@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <title>WebSocket example: echo service</title>
+  </head>
+  <body>
+    <h1>WebSocket example: echo service</h1>
+    <script type="text/javascript">
+        var ws = new WebSocket("ws://localhost:8080/echo");
+        ws.onmessage = function(evt) {
+            var data = evt.data;
+            var target = document.getElementById("received");
+            target.value = target.value + data;
+        };
+
+        ws.onopen = function(evt) {
+            var target = document.getElementById('conn_status');
+            target.value = "Connected";
+        };
+
+        ws.onerror = function(evt) {
+            target = document.getElementById('conn_status');
+            target.value = 'Error';
+        };
+        ws.onclose = function(evt) {
+            target = document.getElementById('conn_status');
+            target.value = 'Closed';
+        };
+
+        window.send_data = function() {
+            ws.send(document.getElementById("send_input").value);
+        };
+    </script>
+    <form>
+      <label for="send_input">Text to send</label>
+      <input type="text" name="send_input" id="send_input"/>
+      <input type="submit" name="send_submit" id="send_submit" value="Send"
+             onclick="send_data(); return false"/>
+      <br/>
+      <label for="received">Received text</label>
+      <textarea name="received" id="received"></textarea>
+      <br/>
+      <label for="status">Status</label>
+      <input type="text" name="status" id="conn_status" value="Not Connected"/>
+
+    </form>
+  </body>
+</html>

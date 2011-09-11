@@ -16,8 +16,15 @@ from twisted.web import resource
 from twisted.web.static import File
 from twisted.internet import task
 
-from websocket import WebSocketHandler, WebSocketSite
+from websocket import WebSocketHandler, WebSocketSite, WebSocketFactory
 
+class Echo(Protocol):
+    def dataReceived(self, data):
+        print "Received data '%s'" % data.strip()
+        self.transport.write(data)
+
+class EchoFactory(Factory):
+    protocol = Echo
 
 class Testhandler(WebSocketHandler):
     def __init__(self, transport):
@@ -71,10 +78,15 @@ if __name__ == "__main__":
     root = File('.')
     site = WebSocketSite(root)
     site.addHandler('/test', Testhandler)
+
+    # example of wrapping a factory in order to provide WebSockets transport
+    echo_factory_wrapped = WebSocketFactory(EchoFactory())
+    site.addHandler('/echo', echo_factory_wrapped.buildHandler)
+
     reactor.listenTCP(8080, site)
     # run policy file server
-    factory = Factory()
-    factory.protocol = FlashSocketPolicy
-    reactor.listenTCP(843, factory)
+    #factory = Factory()
+    #factory.protocol = FlashSocketPolicy
+    #reactor.listenTCP(843, factory)
     reactor.run()
 
