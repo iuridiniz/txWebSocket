@@ -16,7 +16,7 @@ from twisted.web import resource
 from twisted.web.static import File
 from twisted.internet import task
 
-from websocket import WebSocketHandler, WebSocketSite, WebSocketFactory
+from websocket import WebSocketHandler, WebSocketSite, WebSocketWrapperFactory
 
 class Echo(Protocol):
     def dataReceived(self, data):
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     site.addHandler('/test', Testhandler)
 
     # example of wrapping a factory in order to provide WebSockets transport
-    echo_factory_wrapped = WebSocketFactory(EchoFactory())
+    echo_factory_wrapped = WebSocketWrapperFactory(EchoFactory())
     site.addHandler('/echo', echo_factory_wrapped.buildHandler)
 
     reactor.listenTCP(8080, site)
