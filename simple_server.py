@@ -77,6 +77,8 @@ if __name__ == "__main__":
     # serve index.html from the local directory
     root = File('.')
     site = WebSocketSite(root)
+
+    # test handler
     site.addHandler('/test', Testhandler)
 
     # example of wrapping a factory in order to provide WebSockets transport
