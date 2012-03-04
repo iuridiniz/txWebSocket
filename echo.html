@@ -5,7 +5,11 @@
   <body>
     <h1>WebSocket example: echo service</h1>
     <script type="text/javascript">
-        var ws = new WebSocket("ws://" + window.location.hostname + ':' + window.location.port + "/echo");
+        var Socket = window.WebSocket;
+        if ("MozWebSocket" in window) {
+            Socket = window.MozWebSocket
+        }
+        var ws = new Socket("ws://" + window.location.hostname + ':' + window.location.port + "/echo");
         ws.onmessage = function(evt) {
             var data = evt.data;
             var target = document.getElementById("received");
